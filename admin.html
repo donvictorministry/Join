@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<title>Admin Control Center</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#DF1E5A">
+<meta name="referrer" content="no-referrer">
+<link rel="manifest" href="admin-manifest.json">
+<script src="computer-blocker.js"></script>
+<script>
+(function () {
+  try {
+    var t = localStorage.getItem('dvTheme');
+    if (t === 'dark' || t === 'light') document.documentElement.setAttribute('data-theme', t);
+    else if (window.matchMedia && !matchMedia('(prefers-color-scheme: dark)').matches) document.documentElement.setAttribute('data-theme', 'light');
+    var f = parseInt(localStorage.getItem('dvFont'), 10);
+    if (f >= 19 && f <= 22) document.documentElement.style.setProperty('--dv-fs', f + 'px');
+  } catch (e) {}
+})();
+</script>
+<style>
+:root {
+  --dv-primary: #DF1E5A; --dv-primary-hover: #C2194D; --dv-ripple: rgba(223,30,90,.2); --dv-on-primary: #FFFFFF;
+  --dv-success: #146C2E; --dv-error: #B3261E;
+  --dv-bg: #FFFFFF; --dv-surface: #F8F9FA; --dv-text: #121212; --dv-text-2: #4A4A4A; --dv-outline: #E0E0E0;
+  --dv-tint: rgba(223,30,90,.08); --dv-shadow: 0 1px 3px rgba(0,0,0,.18); --dv-fs: 19px; --dv-bar: 64px;
+  color-scheme: light;
+}
+html[data-theme="dark"] {
+  --dv-bg: #121212; --dv-surface: #1E1E1E; --dv-text: #FFFFFF; --dv-text-2: #C9C9C9; --dv-outline: #333333;
+  --dv-tint: rgba(223,30,90,.16); --dv-shadow: 0 1px 3px rgba(0,0,0,.6); --dv-success: #6FD58A; --dv-error: #F2B8B5;
+  color-scheme: dark;
+}
+*, *::before, *::after { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html { font-size: var(--dv-fs); -webkit-text-size-adjust: 100%; text-size-adjust: 100%; width: 100%; height: 100%; background: var(--dv-bg); }
+body { margin: 0; width: 100dvw; height: 100dvh; overflow: hidden; background: var(--dv-bg); color: var(--dv-text);
+  font-family: Roboto, "Google Sans", system-ui, sans-serif; font-size: 1rem; line-height: 1.5; overscroll-behavior: none; -webkit-user-select: none; user-select: none; }
+input, textarea { -webkit-user-select: text; user-select: text; }
+button, input, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; border: 0; background: none; padding: 0; }
+svg { display: block; flex: none; }
+.dv-ico { width: 24px; height: 24px; fill: currentColor; }
+.dv-hide { display: none !important; }
+#dvAdm { position: fixed; inset: 0; width: 100dvw; height: 100dvh; display: flex; flex-direction: column; background: var(--dv-bg); padding-top: env(safe-area-inset-top); }
+
+/* buttons */
+.dv-btn { min-height: 48px; padding: 0 24px; border-radius: 24px; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  font-size: 1rem; font-weight: 500; background: var(--dv-primary); color: var(--dv-on-primary); }
+.dv-btn:active { background: var(--dv-primary-hover); }
+.dv-btn[disabled] { opacity: .5; }
+.dv-btn-tonal { background: var(--dv-tint); color: var(--dv-primary); }
+.dv-btn-text { background: transparent; color: var(--dv-primary); padding: 0 16px; }
+.dv-btn-danger { background: var(--dv-error); color: #FFFFFF; }
+html[data-theme="dark"] .dv-btn-danger { color: #601410; }
+.dv-btn-block { width: 100%; }
+
+/* secret logo screen */
+.dv-center { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; padding: 32px; text-align: center; }
+.dv-logo-btn { width: 168px; height: 168px; border-radius: 50%; padding: 0; transition: transform .12s; }
+.dv-logo-btn:active { transform: scale(.94); }
+.dv-center h1 { margin: 0; font-size: 1.5rem; font-weight: 500; }
+.dv-center p { margin: 0; color: var(--dv-text-2); line-height: 1.55; }
+.dv-spinner { width: 56px; height: 56px; color: var(--dv-primary); animation: dv-rot .9s linear infinite; }
+@keyframes dv-rot { to { transform: rotate(360deg); } }
+.dv-ok-ico { width: 72px; height: 72px; color: var(--dv-success); }
+.dv-timer { font-size: 2.2rem; font-weight: 500; letter-spacing: 1px; font-variant-numeric: tabular-nums; color: var(--dv-primary); }
+.dv-code { width: 100%; min-height: 64px; text-align: center; font-size: 1.6rem; letter-spacing: 6px; border-radius: 16px; border: 1px solid var(--dv-outline);
+  background: var(--dv-surface); outline: none; padding: 8px 12px; }
+.dv-code:focus { border-color: var(--dv-primary); box-shadow: 0 0 0 1px var(--dv-primary); }
+.dv-form { width: 100%; display: flex; flex-direction: column; gap: 14px; }
+.dv-t-error { color: var(--dv-error); margin: 0; }
+
+/* dashboard */
+.dv-appbar { flex: none; height: var(--dv-bar); display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 0 8px 0 20px;
+  background: var(--dv-primary); color: var(--dv-on-primary); box-shadow: var(--dv-shadow); z-index: 5; }
+.dv-appbar h1 { margin: 0; font-size: 1.15rem; font-weight: 500; }
+.dv-out { min-height: 44px; padding: 0 14px; border-radius: 22px; display: inline-flex; align-items: center; gap: 8px; color: #FFFFFF; font-weight: 500; }
+.dv-out:active { background: rgba(255,255,255,.2); }
+.dv-tabs { flex: none; display: flex; gap: 8px; padding: 12px 16px; overflow-x: auto; scrollbar-width: none; border-bottom: 1px solid var(--dv-outline); }
+.dv-tabs::-webkit-scrollbar { display: none; }
+.dv-chip { flex: none; min-height: 40px; padding: 0 16px; border-radius: 12px; display: inline-flex; align-items: center; gap: 8px; font-size: 1rem;
+  box-shadow: inset 0 0 0 1px var(--dv-outline); }
+.dv-chip[aria-pressed="true"] { background: var(--dv-tint); color: var(--dv-primary); box-shadow: inset 0 0 0 1px var(--dv-primary); font-weight: 500; }
+.dv-count { min-width: 26px; height: 26px; padding: 0 7px; border-radius: 13px; background: var(--dv-primary); color: #FFFFFF; display: inline-flex; align-items: center; justify-content: center; font-size: 1rem; }
+.dv-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; overflow-x: hidden; padding: 12px 16px calc(32px + env(safe-area-inset-bottom)); overscroll-behavior-y: contain; }
+.dv-subbar { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 12px; scrollbar-width: none; }
+.dv-subbar::-webkit-scrollbar { display: none; }
+.dv-card { background: var(--dv-surface); border: solid var(--dv-outline); border-width: 1px 0; border-radius: 0; padding: 20px; margin: 0 -16px 12px; }
+.dv-head { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 8px; }
+.dv-badge { display: inline-flex; align-items: center; min-height: 28px; padding: 0 10px; border-radius: 8px; background: var(--dv-tint); color: var(--dv-primary); font-weight: 500; }
+.dv-badge-ok { background: rgba(20,108,46,.14); color: var(--dv-success); }
+.dv-badge-warn { background: rgba(179,38,30,.12); color: var(--dv-error); }
+.dv-meta { color: var(--dv-text-2); }
+.dv-text { margin: 6px 0 12px; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.55; }
+.dv-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.dv-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.dv-tile { background: var(--dv-surface); border-radius: 16px; box-shadow: inset 0 0 0 1px var(--dv-outline); padding: 16px; text-align: left; }
+.dv-tile b { display: block; font-size: 2rem; line-height: 1.15; font-weight: 500; color: var(--dv-primary); }
+.dv-empty { padding: 48px 24px; text-align: center; color: var(--dv-text-2); }
+.dv-empty h2 { margin: 0 0 6px; font-size: 1.25rem; font-weight: 500; color: var(--dv-text); }
+.dv-empty p { margin: 0; }
+.dv-field { display: block; margin: 0 0 16px; }
+.dv-field > span { display: block; margin-bottom: 6px; color: var(--dv-text-2); }
+.dv-input, .dv-textarea { width: 100%; min-height: 56px; padding: 12px 16px; border-radius: 12px; border: 1px solid var(--dv-outline); background: var(--dv-bg); font-size: 1rem; outline: none; }
+.dv-textarea { min-height: 220px; resize: none; line-height: 1.5; }
+.dv-input:focus, .dv-textarea:focus { border-color: var(--dv-primary); box-shadow: 0 0 0 1px var(--dv-primary); }
+
+/* modal */
+.dv-modal-wrap { position: fixed; inset: 0; width: 100dvw; height: 100dvh; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,.55); z-index: 100; padding: 24px; }
+.dv-modal { width: 100%; max-height: calc(100dvh - 48px); overflow-y: auto; background: var(--dv-surface); color: var(--dv-text); border-radius: 28px; padding: 24px; box-shadow: 0 8px 24px rgba(0,0,0,.4); }
+.dv-modal-icon { display: flex; justify-content: center; margin-bottom: 8px; }
+.dv-modal-icon svg { width: 44px; height: 44px; }
+.dv-modal h3 { margin: 0 0 12px; font-size: 1.35rem; font-weight: 500; text-align: center; }
+.dv-modal-body p { margin: 0 0 12px; line-height: 1.55; overflow-wrap: anywhere; }
+.dv-modal-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 20px; }
+.dv-t-success { color: var(--dv-success); } .dv-t-info { color: var(--dv-primary); } .dv-t-err { color: var(--dv-error); }
+.dv-toast { position: fixed; left: 50%; top: 50%; width: calc(100dvw - 64px); padding: 16px 24px; border-radius: 28px; background: rgba(50,50,50,.96); color: #FFFFFF;
+  text-align: center; line-height: 1.45; transform: translate(-50%,-50%) scale(.9); opacity: 0; transition: opacity .22s, transform .22s; z-index: 400; pointer-events: none; box-shadow: 0 6px 20px rgba(0,0,0,.4); }
+.dv-toast.dv-on { opacity: 1; transform: translate(-50%,-50%) scale(1); }
+html[data-theme="dark"] .dv-toast { background: rgba(230,230,230,.96); color: #121212; }
+.dv-btn, .dv-chip, .dv-tile, .dv-out { touch-action: manipulation; transition: transform .08s, background-color .12s; }
+.dv-btn:active, .dv-chip:active, .dv-tile:active { transform: scale(.97); }
+.dv-chip:active, .dv-tile:active { background: var(--dv-ripple); }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-iteration-count: 1 !important; transition-duration: .01ms !important; } }
+</style>
+</head>
+<body>
+<div id="dvAdm" aria-live="polite"></div>
+<div id="dvModalRoot"></div>
+
+<script src="api.js"></script>
+<script>
+/* Prayer House - Admin Control Center (standalone).
+ * The admin email never appears here. This page only ever holds a random session token.
+ * No timers poll the server. The only interval is the on-screen countdown, which makes no requests.
+ */
+(function () {
+  'use strict';
+  if (window.DV && window.DV.blocked) return;
+  var DV = window.DV;
+  var root = document.getElementById('dvAdm');
+  var modalRoot = document.getElementById('dvModalRoot');
+  var SESSION_KEY = 'dvAdmSession';
+
+  /* ---------- helpers ---------- */
+  function el(t, c, x) { var n = document.createElement(t); if (c) n.className = c; if (x != null) n.textContent = x; return n; }
+  var ICONS = {
+    logout: 'M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z',
+    check: 'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z',
+    sync: 'M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z',
+    error: 'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z',
+    info: 'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z',
+    help: 'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z'
+  };
+  function icon(n, cls) { return '<svg class="' + (cls || 'dv-ico') + '" viewBox="0 0 24 24" aria-hidden="true"><path d="' + ICONS[n] + '"/></svg>'; }
+  function logoSvg(size) {
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 48 48" aria-hidden="true">' +
+      '<circle cx="24" cy="24" r="24" fill="#DF1E5A"/>' +
+      '<path d="M24 9l11 4.5v8.7c0 6.9-4.6 11.5-11 13.3-6.4-1.8-11-6.4-11-13.3V13.5L24 9z" fill="#FFFFFF"/>' +
+      '<rect x="23" y="16" width="2" height="14" rx="1" fill="#DF1E5A"/><rect x="18" y="20" width="12" height="2" rx="1" fill="#DF1E5A"/></svg>';
+  }
+  function ago(t) {
+    var s = Math.max(0, (Date.now() - Number(t)) / 1000);
+    if (s < 60) return 'just now';
+    if (s < 3600) return Math.floor(s / 60) + ' min ago';
+    if (s < 86400) return Math.floor(s / 3600) + ' hr ago';
+    return new Date(Number(t)).toLocaleDateString();
+  }
+
+  /* ---------- modal (centered, no browser alerts) ---------- */
+  var modalOpen = false, modalAfter = null;
+  function modal(o) {
+    var m = el('div', 'dv-modal');
+    var map = { success: ['check', 'dv-t-success'], error: ['error', 'dv-t-err'], info: ['info', 'dv-t-info'], confirm: ['help', 'dv-t-info'], loading: ['sync', 'dv-t-info'] };
+    if (map[o.type]) {
+      var ic = el('div', 'dv-modal-icon ' + map[o.type][1]);
+      ic.innerHTML = icon(map[o.type][0], o.type === 'loading' ? 'dv-ico dv-spinner' : 'dv-ico');
+      if (o.type === 'loading') { ic.firstChild.style.width = '44px'; ic.firstChild.style.height = '44px'; }
+      m.appendChild(ic);
+    }
+    if (o.title) m.appendChild(el('h3', '', o.title));
+    var b = el('div', 'dv-modal-body');
+    if (typeof o.body === 'string') b.appendChild(el('p', '', o.body)); else if (o.body) b.appendChild(o.body);
+    if (o.type === 'loading') b.style.textAlign = 'center';
+    m.appendChild(b);
+    if (o.actions) {
+      var row = el('div', 'dv-modal-actions');
+      o.actions.forEach(function (a) {
+        var x = el('button', 'dv-btn' + (a.kind === 'text' ? ' dv-btn-text' : a.kind === 'tonal' ? ' dv-btn-tonal' : a.kind === 'danger' ? ' dv-btn-danger' : ''), a.label);
+        x.type = 'button';
+        x.addEventListener('click', function () { if (a.keep) a.onClick && a.onClick(); else closeModal(a.onClick); });
+        row.appendChild(x);
+      });
+      m.appendChild(row);
+    }
+    var wrap = modalRoot.firstChild;
+    if (!wrap) {
+      wrap = el('div', 'dv-modal-wrap');
+      wrap.addEventListener('click', function (e) { if (e.target === wrap && !wrap._sticky && !wrap._loading) closeModal(); });
+      modalRoot.appendChild(wrap);
+      modalOpen = true;
+      history.pushState({ adm: 1 }, '');
+    }
+    wrap._sticky = !!o.sticky;
+    wrap._loading = o.type === 'loading';
+    wrap.replaceChildren(m);
+    var f = m.querySelector('input,textarea');
+    if (f && !o.noFocus) setTimeout(function () { try { f.focus(); } catch (e) {} }, 150);
+  }
+  function teardownModal() {
+    modalRoot.replaceChildren();
+    modalOpen = false;
+    var cb = modalAfter; modalAfter = null;
+    if (cb) cb();
+  }
+  function closeModal(cb) {
+    if (!modalOpen) { if (cb) cb(); return; }
+    modalAfter = cb || null;
+    history.back();
+  }
+  window.addEventListener('popstate', function () { if (modalOpen) teardownModal(); });
+  function haptic(p) { try { if (navigator.vibrate) navigator.vibrate(p || 10); } catch (e) {} }
+  document.addEventListener('pointerdown', function (e) { if (e.target.closest && e.target.closest('button')) haptic(10); }, { passive: true });
+  function toast(msg, err) {
+    var t = el('div', 'dv-toast', msg);
+    t.setAttribute('role', 'status');
+    document.body.appendChild(t);
+    requestAnimationFrame(function () { t.classList.add('dv-on'); });
+    haptic(err ? [20, 40, 20] : 15);
+    setTimeout(function () { t.classList.remove('dv-on'); setTimeout(function () { t.remove(); }, 260); }, 1800 + msg.length * 35);
+  }
+  function confirmThen(title, body, ok, fn, kind) {
+    modal({ type: 'confirm', title: title, body: body, sticky: true, actions: [{ label: ok, kind: kind, onClick: fn }, { label: 'Cancel', kind: 'text' }] });
+  }
+  var ERR = {
+    CFG: ['Not connected yet', 'The web app URL has not been added to api.js yet.'],
+    OFFLINE: ['You are offline', 'Connect to the internet and try again.'],
+    NET: ['Cannot reach the server', 'Check your connection and try again.'],
+    TIMEOUT: ['The server took too long', 'Try again in a moment.'],
+    BUSY: ['The server is busy', 'Try again in a moment.'],
+    SETUP: ['Setup not finished', 'Run the Smart Installer from the Prayer House menu in the Google Sheet.'],
+    BAD: ['Check what you entered', 'Some details were missing or invalid.'],
+    NOTFOUND: ['Not found', 'That item no longer exists. Refresh and try again.']
+  };
+  function showError(code) {
+    var e = ERR[code] || ['Something went wrong', 'Please try again.'];
+    modal({ type: 'error', title: e[0], body: e[1], actions: [{ label: 'OK' }] });
+  }
+
+  /* ---------- session (survives closing the app until Logout or 6 hours) ---------- */
+  var A = { token: null, exp: 0, tab: 'overview', filter: { requests: 'pending', testimonies: 'pending', messages: 'new' }, data: {}, stats: null, cd: 0 };
+
+  function saveSession(token, exp) {
+    A.token = token; A.exp = exp;
+    try { localStorage.setItem(SESSION_KEY, JSON.stringify({ t: token, e: exp })); } catch (e) {}
+  }
+  function loadSession() {
+    try {
+      var s = JSON.parse(localStorage.getItem(SESSION_KEY) || 'null');
+      if (s && typeof s.t === 'string' && Number(s.e) > Date.now()) { A.token = s.t; A.exp = Number(s.e); return true; }
+    } catch (e) {}
+    return false;
+  }
+  function wipe() {
+    if (A.cd) { clearInterval(A.cd); A.cd = 0; }
+    try {
+      Object.keys(localStorage).forEach(function (k) { if (k.indexOf('dvAdm') === 0) localStorage.removeItem(k); });
+      Object.keys(sessionStorage).forEach(function (k) { if (k.indexOf('dvAdm') === 0) sessionStorage.removeItem(k); });
+    } catch (e) {}
+    A.token = null; A.exp = 0; A.data = {}; A.stats = null; A.tab = 'overview';
+    A.filter = { requests: 'pending', testimonies: 'pending', messages: 'new' };
+    root.replaceChildren();
+    if (modalRoot.firstChild) { modalRoot.replaceChildren(); modalOpen = false; }
+  }
+  function logout() {
+    var tok = A.token;
+    wipe(); // local kill is instant
+    secretScreen();
+    if (tok && DV.api.configured()) DV.api.call('admin_logout', { token: tok }).catch(function () {});
+    tok = null;
+  }
+  function sessionEnded() {
+    wipe();
+    secretScreen();
+    modal({ type: 'info', title: 'Signed out', body: 'Your session has ended. Sign in again to continue.', actions: [{ label: 'OK' }] });
+  }
+  function adm(action, data) {
+    if (!A.token || Date.now() > A.exp) { sessionEnded(); return Promise.reject(new Error('AUTH')); }
+    return DV.api.call(action, Object.assign({ token: A.token }, data || {})).catch(function (e) {
+      if (e && e.message === 'AUTH') sessionEnded();
+      throw e;
+    });
+  }
+
+  /* ---------- login: 4 secret taps, send code, verify ---------- */
+  function setScreen(node) { root.replaceChildren(node); }
+
+  function secretScreen() {
+    var box = el('div', 'dv-center');
+    var logo = el('button', 'dv-logo-btn');
+    logo.type = 'button';
+    logo.setAttribute('aria-label', 'Admin Control Center logo');
+    logo.innerHTML = logoSvg(168);
+    box.appendChild(logo);
+    box.appendChild(el('h1', '', 'Admin Control Center'));
+    setScreen(box);
+
+    var taps = 0, reset = 0, settle = 0;
+    logo.addEventListener('click', function () {
+      clearTimeout(reset); clearTimeout(settle);
+      taps++;
+      if (taps === 4) {
+        settle = setTimeout(function () { if (taps === 4) sendScreen(); }, 700); // a 5th tap cancels
+      } else if (taps > 4) {
+        taps = 0;
+        return;
+      }
+      reset = setTimeout(function () { taps = 0; }, 2500);
+    });
+  }
+
+  function sendScreen() {
+    var box = el('div', 'dv-center');
+    box.appendChild(el('h1', '', 'Verify it is you'));
+    box.appendChild(el('p', '', 'A one-time code will be emailed to the registered admin address.'));
+    var b = el('button', 'dv-btn', 'Send me code');
+    b.type = 'button';
+    b.addEventListener('click', sendCode);
+    box.appendChild(b);
+    setScreen(box);
+  }
+
+  function spinnerScreen(msg) {
+    var box = el('div', 'dv-center');
+    var sp = el('div');
+    sp.innerHTML = icon('sync', 'dv-ico dv-spinner');
+    box.appendChild(sp);
+    box.appendChild(el('p', '', msg));
+    setScreen(box);
+  }
+
+  function sendCode() {
+    spinnerScreen('Verification code has been sent to your registered email.');
+    var started = Date.now();
+    DV.api.call('admin_send_code').then(function () {
+      var wait = Math.max(0, 1800 - (Date.now() - started));
+      setTimeout(function () { verifyScreen(Date.now() + 600000); }, wait);
+    }).catch(function (e) {
+      sendScreen();
+      showError(e && e.message);
+    });
+  }
+
+  function verifyScreen(endAt) {
+    var box = el('div', 'dv-center');
+    box.appendChild(el('h1', '', 'Enter your code'));
+    box.appendChild(el('p', '', 'Paste the 6-digit code from your email.'));
+    var timer = el('div', 'dv-timer', '10:00');
+    box.appendChild(timer);
+    var form = el('div', 'dv-form');
+    var input = el('input', 'dv-code');
+    input.type = 'text';
+    input.inputMode = 'numeric';
+    input.autocomplete = 'one-time-code';
+    input.placeholder = '000000';
+    input.setAttribute('aria-label', '6-digit verification code');
+    var err = el('p', 'dv-t-error');
+    var go = el('button', 'dv-btn dv-btn-block', 'Verify');
+    go.type = 'button';
+    go.disabled = true;
+    var again = el('button', 'dv-btn dv-btn-text dv-hide', 'Send a new code');
+    again.type = 'button';
+    form.appendChild(input); form.appendChild(err); form.appendChild(go); form.appendChild(again);
+    box.appendChild(form);
+    setScreen(box);
+
+    function expired() {
+      clearInterval(A.cd); A.cd = 0;
+      timer.textContent = '0:00';
+      input.disabled = true; go.disabled = true;
+      err.textContent = 'This code has expired.';
+      again.classList.remove('dv-hide');
+    }
+    function tick() {
+      var left = Math.max(0, Math.ceil((endAt - Date.now()) / 1000));
+      timer.textContent = Math.floor(left / 60) + ':' + ('0' + (left % 60)).slice(-2);
+      if (left <= 0) expired();
+    }
+    if (A.cd) clearInterval(A.cd);
+    A.cd = setInterval(tick, 1000);
+    tick();
+
+    input.addEventListener('input', function () {
+      input.value = input.value.replace(/\D/g, '').slice(0, 6);
+      go.disabled = input.value.length !== 6;
+      err.textContent = '';
+    });
+    again.addEventListener('click', function () { clearInterval(A.cd); A.cd = 0; sendScreen(); });
+    go.addEventListener('click', function () {
+      var code = input.value;
+      spinnerScreen('Checking your code...');
+      DV.api.call('admin_verify', { code: code }).then(function (r) {
+        clearInterval(A.cd); A.cd = 0;
+        saveSession(r.token, r.exp);
+        var ok = el('div', 'dv-center');
+        var i = el('div'); i.innerHTML = icon('check', 'dv-ico dv-ok-ico');
+        ok.appendChild(i);
+        ok.appendChild(el('h1', '', 'You have been verified.'));
+        setScreen(ok);
+        setTimeout(dashboard, 1100);
+      }).catch(function (e) {
+        var c = e && e.message;
+        if (c === 'WRONG' || c === 'BAD') {
+          verifyScreen(endAt);
+          var er = root.querySelector('.dv-t-error');
+          if (er) er.textContent = 'That code is not correct. Check the email and try again.';
+        } else if (c === 'EXPIRED') {
+          clearInterval(A.cd); A.cd = 0;
+          sendScreen();
+          modal({ type: 'info', title: 'Code expired', body: 'That code can no longer be used. Request a new one.', actions: [{ label: 'OK' }] });
+        } else {
+          verifyScreen(endAt);
+          showError(c);
+        }
+      });
+    });
+  }
+
+  /* ---------- dashboard ---------- */
+  var TABS = [['overview', 'Overview'], ['requests', 'Requests'], ['testimonies', 'Testimonies'], ['messages', 'Messages'], ['pages', 'Pages']];
+  var PAGE_NAMES = { aims: 'Our Aims', founder: 'About the Founder', team: 'Meet our Team', howto: 'How to Use App', terms: 'Terms of Use', partner: 'Partner With Us', contact: 'Contact Us' };
+  var shell = null;
+
+  function dashboard() {
+    var wrap = el('div');
+    wrap.style.cssText = 'display:flex;flex-direction:column;flex:1 1 auto;min-height:0;width:100%';
+    var bar = el('header', 'dv-appbar');
+    bar.appendChild(el('h1', '', 'Admin Control Center'));
+    var out = el('button', 'dv-out');
+    out.type = 'button';
+    out.innerHTML = icon('logout') + '<span>Logout</span>';
+    out.addEventListener('click', function () {
+      confirmThen('Log out?', 'Your session will end on this phone. You will need a new emailed code to sign in again.', 'Log out', function () { logout(); toast('You have been logged out'); });
+    });
+    bar.appendChild(out);
+    var tabs = el('nav', 'dv-tabs');
+    var body = el('main', 'dv-body');
+    wrap.appendChild(bar); wrap.appendChild(tabs); wrap.appendChild(body);
+    shell = { tabs: tabs, body: body };
+    setScreen(wrap);
+    renderTabs();
+    openTab('overview');
+  }
+
+  function badgeFor(k) {
+    if (!A.stats) return 0;
+    return k === 'requests' ? A.stats.pending : k === 'testimonies' ? A.stats.testPending : k === 'messages' ? A.stats.msgNew : 0;
+  }
+  function renderTabs() {
+    if (!shell) return;
+    shell.tabs.replaceChildren();
+    TABS.forEach(function (t) {
+      var b = el('button', 'dv-chip');
+      b.type = 'button';
+      b.setAttribute('aria-pressed', A.tab === t[0] ? 'true' : 'false');
+      b.appendChild(el('span', '', t[1]));
+      var n = badgeFor(t[0]);
+      if (n > 0) b.appendChild(el('span', 'dv-count', String(n)));
+      b.addEventListener('click', function () { openTab(t[0]); });
+      shell.tabs.appendChild(b);
+    });
+  }
+
+  function loading() {
+    var d = el('div', 'dv-empty');
+    d.innerHTML = icon('sync', 'dv-ico dv-spinner');
+    d.firstChild.style.margin = '0 auto';
+    shell.body.replaceChildren(d);
+  }
+
+  function openTab(t) {
+    A.tab = t;
+    renderTabs();
+    loading();
+    var kind = t === 'overview' ? 'stats' : t;
+    adm('admin_data', { kind: kind }).then(function (r) {
+      if (t === 'overview') { A.stats = r.stats; renderTabs(); }
+      else { A.data[t] = r.items; adm('admin_data', { kind: 'stats' }).then(function (s) { A.stats = s.stats; renderTabs(); }).catch(function () {}); }
+      if (A.tab === t) renderBody();
+    }).catch(function (e) {
+      if (e && e.message === 'AUTH') return;
+      var d = el('div', 'dv-empty');
+      d.appendChild(el('h2', '', 'Could not load'));
+      d.appendChild(el('p', '', (ERR[e && e.message] || ERR.NET)[1]));
+      var b = el('button', 'dv-btn', 'Try again');
+      b.type = 'button';
+      b.style.marginTop = '16px';
+      b.addEventListener('click', function () { openTab(t); });
+      d.appendChild(b);
+      shell.body.replaceChildren(d);
+    });
+  }
+
+  function renderBody() {
+    if (!shell) return;
+    shell.body.scrollTop = 0;
+    if (A.tab === 'overview') return renderOverview();
+    if (A.tab === 'pages') return renderPages();
+    renderList(A.tab);
+  }
+
+  function renderOverview() {
+    var s = A.stats || {};
+    var g = el('div', 'dv-grid');
+    [
+      ['Waiting for approval', s.pending, 'requests', 'pending'],
+      ['On the wall', s.approved, 'requests', 'approved'],
+      ['Answered', s.answered, 'requests', 'answered'],
+      ['All requests', s.total, 'requests', 'all'],
+      ['Prayers offered', s.prayers, null],
+      ['Testimonies waiting', s.testPending, 'testimonies', 'pending'],
+      ['New messages', s.msgNew, 'messages', 'new']
+    ].forEach(function (x) {
+      var t = el('button', 'dv-tile');
+      t.type = 'button';
+      t.appendChild(el('b', '', String(x[1] || 0)));
+      t.appendChild(el('span', 'dv-meta', x[0]));
+      if (x[2]) t.addEventListener('click', function () { A.filter[x[2]] = x[3]; openTab(x[2]); });
+      g.appendChild(t);
+    });
+    var r = el('button', 'dv-btn dv-btn-tonal dv-btn-block', 'Refresh');
+    r.type = 'button';
+    r.style.marginTop = '16px';
+    r.addEventListener('click', function () { openTab('overview'); });
+    shell.body.replaceChildren(g, r);
+  }
+
+  var FILTERS = {
+    requests: [['pending', 'Waiting'], ['approved', 'On the wall'], ['answered', 'Answered'], ['rejected', 'Rejected'], ['all', 'All']],
+    testimonies: [['pending', 'Waiting'], ['approved', 'Published'], ['rejected', 'Rejected'], ['all', 'All']],
+    messages: [['new', 'New'], ['read', 'Read'], ['all', 'All']]
+  };
+  var LABEL = { pending: 'Waiting', approved: 'On the wall', answered: 'Answered', rejected: 'Rejected', new: 'New', read: 'Read' };
+
+  function renderList(kind) {
+    var frag = document.createDocumentFragment();
+    var sub = el('div', 'dv-subbar');
+    FILTERS[kind].forEach(function (f) {
+      var b = el('button', 'dv-chip', f[1]);
+      b.type = 'button';
+      b.setAttribute('aria-pressed', A.filter[kind] === f[0] ? 'true' : 'false');
+      b.addEventListener('click', function () { A.filter[kind] = f[0]; renderBody(); });
+      sub.appendChild(b);
+    });
+    var rf = el('button', 'dv-chip');
+    rf.type = 'button';
+    rf.innerHTML = icon('sync') + '<span>Refresh</span>';
+    rf.addEventListener('click', function () { openTab(kind); });
+    sub.appendChild(rf);
+    frag.appendChild(sub);
+
+    var items = (A.data[kind] || []).filter(function (x) { return A.filter[kind] === 'all' || x.s === A.filter[kind]; });
+    if (!items.length) {
+      var d = el('div', 'dv-empty');
+      d.appendChild(el('h2', '', 'Nothing here'));
+      d.appendChild(el('p', '', 'No items match this filter.'));
+      frag.appendChild(d);
+    }
+    items.forEach(function (it) { frag.appendChild(card(kind, it)); });
+    shell.body.replaceChildren(frag);
+  }
+
+  function actBtn(label, kind, fn) {
+    var b = el('button', 'dv-btn' + (kind === 'tonal' ? ' dv-btn-tonal' : kind === 'text' ? ' dv-btn-text' : ''), label);
+    b.type = 'button';
+    b.addEventListener('click', fn);
+    return b;
+  }
+
+  function card(kind, it) {
+    var c = el('div', 'dv-card');
+    var head = el('div', 'dv-head');
+    if (kind === 'requests') head.appendChild(el('span', 'dv-badge', it.c));
+    if (kind === 'messages') head.appendChild(el('span', 'dv-badge', it.ty === 'partner' ? 'Partner' : 'Contact'));
+    if (it.u === 'urgent') head.appendChild(el('span', 'dv-badge dv-badge-warn', 'Urgent'));
+    head.appendChild(el('span', 'dv-badge ' + (it.s === 'approved' || it.s === 'answered' ? 'dv-badge-ok' : it.s === 'rejected' ? 'dv-badge-warn' : ''), LABEL[it.s] || it.s));
+    c.appendChild(head);
+    c.appendChild(el('div', 'dv-meta', (it.n || 'Anonymous') + ', ' + ago(it.t)));
+    if (kind === 'messages' && it.c) c.appendChild(el('div', 'dv-meta', 'Contact: ' + it.c));
+    c.appendChild(el('p', 'dv-text', it.x));
+    if (kind === 'requests' && (it.s === 'approved' || it.s === 'answered')) c.appendChild(el('div', 'dv-meta', it.p + ' prayers'));
+    var a = el('div', 'dv-actions');
+    a.style.marginTop = '12px';
+    if (kind === 'messages') {
+      a.appendChild(actBtn(it.s === 'new' ? 'Mark as read' : 'Mark as new', 'tonal', function () { setStatus(kind, it, it.s === 'new' ? 'read' : 'new'); }));
+    } else {
+      if (it.s !== 'approved' && it.s !== 'answered') a.appendChild(actBtn('Approve', '', function () { setStatus(kind, it, 'approved'); }));
+      if (it.s !== 'rejected') a.appendChild(actBtn(it.s === 'pending' ? 'Reject' : 'Unpublish', 'tonal', function () { setStatus(kind, it, 'rejected'); }));
+    }
+    a.appendChild(actBtn('Delete', 'text', function () { confirmDelete(kind, it); }));
+    c.appendChild(a);
+    return c;
+  }
+
+  var STATUS_TEXT = {
+    approved: ['Approve this item?', 'It will be published in the app.', 'Approve', 'Approved'],
+    rejected: ['Reject this item?', 'It will not be shown in the app.', 'Reject', 'Rejected'],
+    read: ['Mark as read?', 'It will move to the Read list.', 'Mark as read', 'Marked as read'],
+    new: ['Mark as new?', 'It will move back to the New list.', 'Mark as new', 'Marked as new'],
+    pending: ['Move to waiting?', 'It will wait for approval again.', 'Move', 'Moved to waiting']
+  };
+  function setStatus(kind, it, status) {
+    var tx = STATUS_TEXT[status] || ['Update this item?', '', 'Update', 'Updated'];
+    confirmThen(tx[0], tx[1], tx[2], function () {
+      modal({ type: 'loading', title: 'Updating', body: 'Please wait...' });
+      adm('admin_set_status', { kind: kind, id: it.id, status: status }).then(function () {
+        it.s = status;
+        closeModal(function () { renderBody(); refreshStats(); toast(tx[3]); });
+      }).catch(function (e) {
+        if (e && e.message !== 'AUTH') showError(e && e.message);
+      });
+    }, status === 'rejected' ? 'danger' : '');
+  }
+
+  function confirmDelete(kind, it) {
+    modal({
+      type: 'confirm', title: 'Delete this item?', body: 'It will be hidden everywhere. The row stays in the Sheet marked as deleted.',
+      actions: [
+        { kind: 'danger', label: 'Delete', onClick: function () {
+          modal({ type: 'loading', title: 'Deleting', body: 'Please wait...' });
+          adm('admin_delete', { kind: kind, id: it.id }).then(function () {
+            A.data[kind] = A.data[kind].filter(function (x) { return x !== it; });
+            closeModal(function () { renderBody(); refreshStats(); toast('Deleted'); });
+          }).catch(function (e) { if (e && e.message !== 'AUTH') showError(e && e.message); });
+        } },
+        { label: 'Keep', kind: 'text' }
+      ]
+    });
+  }
+
+  function refreshStats() {
+    adm('admin_data', { kind: 'stats' }).then(function (s) { A.stats = s.stats; renderTabs(); }).catch(function () {});
+  }
+
+  function renderPages() {
+    var frag = document.createDocumentFragment();
+    (A.data.pages || []).forEach(function (p) {
+      var c = el('div', 'dv-card');
+      var head = el('div', 'dv-head');
+      head.appendChild(el('span', 'dv-badge', PAGE_NAMES[p.key] || p.key));
+      head.appendChild(el('span', 'dv-badge ' + (p.body ? 'dv-badge-ok' : 'dv-badge-warn'), p.body ? 'Written' : 'Empty'));
+      c.appendChild(head);
+      if (p.body) { var pv = el('p', 'dv-text', p.body.length > 160 ? p.body.slice(0, 160) + '...' : p.body); c.appendChild(pv); }
+      var a = el('div', 'dv-actions');
+      a.appendChild(actBtn('Edit', 'tonal', function () { editPage(p); }));
+      c.appendChild(a);
+      frag.appendChild(c);
+    });
+    shell.body.replaceChildren(frag);
+  }
+
+  function editPage(p) {
+    var body = el('div');
+    var t = el('input', 'dv-input');
+    t.value = p.title || '';
+    t.placeholder = PAGE_NAMES[p.key];
+    t.maxLength = 80;
+    var x = el('textarea', 'dv-textarea');
+    x.value = p.body || '';
+    x.maxLength = 6000;
+    x.placeholder = 'Write the page. Leave a blank line between paragraphs.';
+    function field(l, n) { var w = el('label', 'dv-field'); w.appendChild(el('span', '', l)); w.appendChild(n); return w; }
+    body.appendChild(field('Title (optional)', t));
+    body.appendChild(field('Text', x));
+    function form() {
+      modal({
+        title: PAGE_NAMES[p.key], body: body, sticky: true,
+        actions: [{ label: 'Continue', keep: true, onClick: review }, { label: 'Cancel', kind: 'text' }]
+      });
+    }
+    function review() {
+      modal({
+        type: 'confirm', title: 'Save this page?', body: 'The change goes live in the app right away.', sticky: true,
+        actions: [{ label: 'Yes, save', keep: true, onClick: save }, { label: 'Go back', kind: 'text', keep: true, onClick: form }]
+      });
+    }
+    function save() {
+      modal({ type: 'loading', title: 'Saving', body: 'Please wait...' });
+      adm('admin_save_page', { key: p.key, title: t.value, body: x.value }).then(function () {
+        p.title = t.value.trim(); p.body = x.value.trim();
+        closeModal(function () { renderPages(); toast('Page saved'); });
+      }).catch(function (e) { if (e && e.message !== 'AUTH') showError(e && e.message); });
+    }
+    form();
+  }
+
+  /* ---------- start ---------- */
+  function start() {
+    if (loadSession()) {
+      spinnerScreen('Restoring your session...');
+      adm('admin_check').then(function (r) {
+        if (r && r.valid) dashboard();
+        else { wipe(); secretScreen(); }
+      }).catch(function (e) {
+        var c = e && e.message;
+        if (c === 'AUTH') return;
+        // Server not reachable: keep the session, let the admin retry.
+        var box = el('div', 'dv-center');
+        box.appendChild(el('h1', '', (ERR[c] || ERR.NET)[0]));
+        box.appendChild(el('p', '', (ERR[c] || ERR.NET)[1]));
+        var b = el('button', 'dv-btn', 'Try again');
+        b.type = 'button';
+        b.addEventListener('click', start);
+        var o = el('button', 'dv-btn dv-btn-text', 'Logout');
+        o.type = 'button';
+        o.addEventListener('click', logout);
+        box.appendChild(b); box.appendChild(o);
+        setScreen(box);
+      });
+    } else {
+      wipe();
+      secretScreen();
+    }
+  }
+  start();
+
+  if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+    window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); });
+  }
+})();
+</script>
+</body>
+</html>
