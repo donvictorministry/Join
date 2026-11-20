@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<title>Prayer House</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#DF1E5A">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="description" content="Prayer House is a prayer chain for your community. Share a request, pray for others, and celebrate answered prayer.">
+
+<!-- Open Graph (WhatsApp and Facebook previews). Replace the placeholder URLs after hosting. -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Prayer House">
+<meta property="og:title" content="Prayer House">
+<meta property="og:description" content="Share a prayer request, pray for others, and celebrate answered prayer together.">
+<meta property="og:url" content="https://REPLACE-WITH-YOUR-SITE-URL/">
+<meta property="og:image" content="https://REPLACE-WITH-YOUR-HOSTED-PNG-URL/og-image.png">
+
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="https://REPLACE-WITH-YOUR-HOSTED-PNG-URL/icon-192.png">
+<link rel="apple-touch-icon" href="https://REPLACE-WITH-YOUR-HOSTED-PNG-URL/icon-192.png">
+<link rel="stylesheet" href="styles.css">
+
+<script src="computer-blocker.js"></script>
+<script>
+/* Apply saved theme and font size before first paint (no flash). */
+(function () {
+  try {
+    var t = localStorage.getItem('dvTheme');
+    if (t === 'dark' || t === 'light') document.documentElement.setAttribute('data-theme', t);
+    else if (window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches) document.documentElement.setAttribute('data-theme', 'dark');
+    var f = parseInt(localStorage.getItem('dvFont'), 10);
+    if (f >= 19 && f <= 22) document.documentElement.style.setProperty('--dv-fs', f + 'px');
+  } catch (e) {}
+})();
+</script>
+</head>
+<body>
+
+<div id="dvApp">
+  <header class="dv-appbar">
+    <button class="dv-iconbtn dv-ripple" id="dvBtnMenu" type="button" aria-label="Open menu" data-icon="menu"></button>
+    <h1>Prayer House</h1>
+    <button class="dv-iconbtn dv-ripple" id="dvBtnMore" type="button" aria-label="More options" data-icon="more"></button>
+  </header>
+
+  <main id="dvMain" aria-live="polite"></main>
+</div>
+
+<div class="dv-scrim" id="dvScrim"></div>
+
+<!-- Left sidebar: public information -->
+<aside class="dv-drawer" id="dvLeft" aria-label="Information menu" aria-hidden="true">
+  <div class="dv-drawer-head">
+    <button class="dv-iconbtn dv-ripple dv-back" type="button" data-icon="back" data-close aria-label="Close menu"></button>
+    <span id="dvLeftLogo"></span>
+    <div><b>Prayer House</b><span>Pray together</span></div>
+  </div>
+  <nav class="dv-drawer-body">
+    <button class="dv-nav dv-ripple" type="button" data-page="wall"><span data-icon="home"></span>Prayer Wall</button>
+    <div class="dv-rule"></div>
+    <button class="dv-nav dv-ripple" type="button" data-page="aims"><span data-icon="flag"></span>Our Aims</button>
+    <button class="dv-nav dv-ripple" type="button" data-page="founder"><span data-icon="person"></span>About the Founder</button>
+    <button class="dv-nav dv-ripple" type="button" data-page="team"><span data-icon="group"></span>Meet our Team</button>
+    <button class="dv-nav dv-ripple" type="button" data-page="howto"><span data-icon="help"></span>How to Use App</button>
+    <button class="dv-nav dv-ripple" type="button" data-page="terms"><span data-icon="doc"></span>Terms of Use</button>
+    <button class="dv-nav dv-ripple" type="button" data-page="partner"><span data-icon="link"></span>Partner With Us</button>
+    <button class="dv-nav dv-ripple" type="button" data-page="contact"><span data-icon="mail"></span>Contact Us</button>
+  </nav>
+</aside>
+
+<!-- Right sidebar: app controls -->
+<aside class="dv-drawer dv-right" id="dvRight" aria-label="App options" aria-hidden="true">
+  <div class="dv-drawer-head">
+    <button class="dv-iconbtn dv-ripple dv-back" type="button" data-icon="back" data-close aria-label="Close options"></button>
+    <div><b>Options</b><span>Make it comfortable</span></div>
+  </div>
+  <div class="dv-drawer-body">
+    <div class="dv-nav dv-ripple" id="dvRowDark" role="button" tabindex="0">
+      <span data-icon="dark" id="dvDarkIcon"></span>
+      <span class="dv-grow">Dark mode</span>
+      <label class="dv-switch"><input type="checkbox" id="dvDarkSwitch" aria-label="Dark mode"><i></i></label>
+    </div>
+    <div class="dv-slider-row">
+      <label for="dvFontRange"><span>Font size</span><b id="dvFontVal">19px</b></label>
+      <input class="dv-range" id="dvFontRange" type="range" min="19" max="22" step="1" value="19">
+      <div class="dv-range-ends"><span>19px</span><span>22px</span></div>
+    </div>
+    <div class="dv-rule"></div>
+    <button class="dv-nav dv-ripple" type="button" id="dvBtnQr"><span data-icon="qr"></span>QR Scan &amp; Join</button>
+    <button class="dv-nav dv-ripple" type="button" id="dvBtnInstall"><span data-icon="install"></span>Install App</button>
+    <button class="dv-nav dv-ripple" type="button" id="dvBtnShare"><span data-icon="share"></span>Share App</button>
+  </div>
+</aside>
+
+<!-- Full-screen page layer: founder, team, contact and other info pages -->
+<div class="dv-layer" id="dvPageLayer" aria-hidden="true"></div>
+
+<div id="dvModalRoot"></div>
+
+<script src="api.js"></script>
+<script src="QRcode.js"></script>
+<script src="content.js"></script>
+<script src="prayer-wall.js"></script>
+<script src="cover-page.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
