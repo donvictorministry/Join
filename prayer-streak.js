@@ -189,11 +189,10 @@
     '.ps-btn-tonal{background:var(--ps-tint);color:var(--ps-primary)}.ps-btn-tonal:active{background:rgba(223,30,90,.22)}' +
     '.ps-btn-text{background:transparent;color:var(--ps-primary)}.ps-btn-block{width:100%}' +
     /* floating button */
-    '.ps-pill{position:fixed;left:16px;bottom:calc(16px + env(safe-area-inset-bottom));height:60px;padding:0 20px 0 16px;border-radius:20px;z-index:3;' +
+    '.ps-pill{position:fixed;left:16px;bottom:calc(16px + env(safe-area-inset-bottom));width:60px;height:60px;padding:0;justify-content:center;border-radius:50%;z-index:3;' +
     'display:inline-flex;align-items:center;gap:10px;background:var(--ps-surface);color:var(--ps-text);border:2px solid var(--ps-primary);font:inherit;font-weight:500;' +
     'box-shadow:0 3px 8px rgba(0,0,0,.3);cursor:pointer;touch-action:manipulation;transition:transform .08s}' +
-    '.ps-pill:active{transform:scale(.95)}.ps-pill .ps-ico{color:var(--ps-primary);width:28px;height:28px}' +
-    '.ps-pill.ps-done .ps-ico{color:var(--ps-ok)}' +
+    '.ps-pill:active{transform:scale(.95)}.ps-badge-n{position:absolute;top:-8px;right:-8px;min-width:28px;height:28px;padding:0 6px;border-radius:14px;background:var(--ps-primary);color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-weight:500;font-size:var(--ps-fs);line-height:1}.ps-pill.ps-done{border-color:var(--ps-ok)}.ps-pill.ps-done .ps-badge-n{background:var(--ps-ok)}.ps-fire{font-size:calc(var(--ps-fs) * 1.5);line-height:1}.ps-fire-big{font-size:calc(var(--ps-fs) * 2.8);line-height:1}' +
     '.ps-pill.ps-due{animation:ps-pulse 2.4s ease-out infinite}' +
     '@keyframes ps-pulse{0%{box-shadow:0 3px 8px rgba(0,0,0,.3),0 0 0 0 rgba(223,30,90,.5)}70%{box-shadow:0 3px 8px rgba(0,0,0,.3),0 0 0 14px rgba(223,30,90,0)}100%{box-shadow:0 3px 8px rgba(0,0,0,.3),0 0 0 0 rgba(223,30,90,0)}}' +
     /* full-screen page */
@@ -336,8 +335,9 @@
     var s = loadState(), t = today(), n = shown(s, t), done = prayedToday(s, t);
     pill.classList.toggle('ps-done', done);
     pill.classList.toggle('ps-due', !done);
-    pill.innerHTML = icon(done ? 'check' : 'flame') + '<span></span>';
-    pill.lastChild.textContent = n > 0 ? 'Day ' + n : 'Pray today';
+    pill.innerHTML = '<span class="ps-fire" aria-hidden="true">\uD83D\uDD25</span>';
+    if (n > 0) pill.appendChild(h('span', 'ps-badge-n', String(n)));
+    pill.setAttribute('aria-label', n > 0 ? 'Daily prayer, day ' + n : 'Pray today');
   }
   refreshPill();
 
@@ -355,7 +355,7 @@
     /* streak */
     var c1 = card('ps-streak');
     var big = h('div', 'ps-big');
-    big.innerHTML = icon('flame');
+    big.innerHTML = '<span class="ps-fire-big" aria-hidden="true">\uD83D\uDD25</span>';
     big.appendChild(h('span', 'ps-num', String(n)));
     c1.appendChild(big);
     c1.appendChild(h('p', 'ps-meta', 'day streak'));
